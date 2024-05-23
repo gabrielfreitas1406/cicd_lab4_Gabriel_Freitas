@@ -1,6 +1,8 @@
 name: GCP Deploy
+
 on:
   push
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -10,12 +12,13 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Lint
-        id : lint-step
+        id: lint-step
         #continue-on-error: true
         run: npm run lint
       - name: check-lint
         if: failure() && steps.lint-step.outcome == 'failure'
-        run: echo "Codigo precisa ser revisto!!"
+        run: echo "Código precisa ser revisto!!"
+
   build_docker:
     needs: lint
     runs-on: ubuntu-latest
@@ -36,6 +39,7 @@ jobs:
           push: true
           dockerfile: ./Dockerfile   # Specify the path to your Dockerfile here
           tags: gabfreitas/webacademy:latest
+
   deploy:
     needs: lint
     name: Setup Gcloud Account
@@ -48,11 +52,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Login to GCP
-      - name: LoginCCP
-        uses: google-github-actions/setup-gcloud@v0
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      # Setup Google Cloud SDK
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       # gcloud configure docker
